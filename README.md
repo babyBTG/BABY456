@@ -99,4 +99,15 @@ contract BABYToken is ERC20, Ownable {
         }
         super._transfer(sender, recipient, amount);
     }
-}
+}require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config(); // 读取 .env 文件
+
+module.exports = {
+  solidity: "0.8.0",
+  networks: {
+    core: {
+      url: "https://rpc.coredao.org", // CORE 主网 RPC 节点
+      accounts: [process.env.PRIVATE_KEY], // 从 .env 文件读取私钥
+    },
+  },
+};
